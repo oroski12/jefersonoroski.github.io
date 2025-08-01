@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Semanal Compacta - Imersão CI + TI</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --morning: #f6e58d;
+            --afternoon: #ffbe76;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.4;
+            padding-bottom: 30px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .week-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .day-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            min-width: 0;
+        }
+        
+        .day-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .day-header {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            color: white;
+            padding: 0.8rem;
+        }
+        
+        .day-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .day-content {
+            padding: 1rem;
+        }
+        
+        .time-slot {
+            display: flex;
+            margin-bottom: 0.8rem;
+            position: relative;
+        }
+        
+        .time-marker {
+            width: 70px;
+            flex-shrink: 0;
+            text-align: right;
+            padding-right: 10px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+        
+        .session-item {
+            flex-grow: 1;
+            padding: 0.8rem;
+            border-left: 2px solid var(--secondary);
+            background-color: #f8fafc;
+            border-radius: 0 5px 5px 0;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+        }
+        
+        .session-item:hover {
+            background-color: #f0f4f8;
+        }
+        
+        .session-topic {
+            font-weight: 600;
+            color: var(--dark);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        
+        .session-type {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        /* Color coding for session types */
+        .workshop {
+            border-left-color: var(--warning);
+        }
+        
+        .sessao {
+            border-left-color: var(--success);
+        }
+        
+        .espaco-time {
+            border-left-color: var(--secondary);
+        }
+        
+        /* Time of day indicators */
+        .morning-session {
+            background-color: rgba(246, 229, 141, 0.1);
+        }
+        
+        .afternoon-session {
+            background-color: rgba(255, 190, 118, 0.1);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .week-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .week-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-slot {
+                flex-direction: column;
+            }
+            
+            .time-marker {
+                text-align: left;
+                padding-left: 5px;
+                padding-bottom: 3px;
+                width: 100%;
+            }
+        }
+        
+        /* Jump to day buttons */
+        .day-jumper {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .jump-btn {
+            padding: 0.4rem 0.8rem;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        .jump-btn:hover {
+            background-color: var(--light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CI Meeting Blumenau</h1>
+            <p class="subtitle">Agenda Semanal</p>
+        </header>
+        
+        <div class="day-jumper">
+            <button class="jump-btn" onclick="scrollToDay('segunda')">Segunda</button>
+            <button class="jump-btn" onclick="scrollToDay('terca')">Terça</button>
+            <button class="jump-btn" onclick="scrollToDay('quarta')">Quarta</button>
+            <button class="jump-btn" onclick="scrollToDay('quinta')">Quinta</button>
+            <button class="jump-btn" onclick="scrollToDay('sexta')">Sexta</button>
+        </div>
+        
+        <div class="week-container">
+            <!-- Segunda-feira -->
+            <div class="day-card" id="segunda">
+                <div class="day-header">
+                    <h2 class="day-title">Segunda-feira</h2>
+                </div>
+                
+                <div class="day-content">
+                    <div class="time-slot">
+                        <div class="time-marker">8:00 AM</div>
+                        <div class="session-item morning-session">
+                            <span class="session-topic">Abertura e objetivos da imersão</span>
+                            <span class="session-type">Abertura</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">9:00 AM</div>
+                        <div class="session-item sessao morning-session">
+                            <span class="session-topic">Sessão: Visão Estratégica da área CI + TI</span>
+                            <span class="session-type">Sessão Estratégica</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">10:00 AM</div>
+                        <div class="session-item morning-session">
+                            <span class="session-topic">Management Review com foco em: resultados, riscos, recursos e oportunidades</span>
+                            <span class="session-type">Revisão</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">2:00 PM</div>
+                        <div class="session-item workshop afternoon-session">
+                            <span class="session-topic">Workshop: Onde estão nossos gargalos?</span>
+                            <span class="session-type">Workshop</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">3:00 PM</div>
+                        <div class="session-item sessao afternoon-session">
+                            <span class="session-topic">Sessão: Pain points de usabilidade (com usuários-chave Brasil)</span>
+                            <span class="session-type">Sessão com Usuários</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">5:00 PM</div>
+                        <div class="session-item espaco-time afternoon-session">
+                            <span class="session-topic">Espaço para o time: escuta ativa e sugestões</span>
+                            <span class="session-type">Dinâmica de Grupo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Terça-feira -->
+            <div class="day-card" id="terca">
+                <div class="day-header">
+                    <h2 class="day-title">Terça-feira</h2>
+                </div>
+                
+                <div class="day-content">
+                    <div class="time-slot">
+                        <div class="time-marker">8:00 AM</div>
+                        <div class="session-item sessao morning-session">
+                            <span class="session-topic">Sessão: Pain points de usabilidade (com usuários-chave China)</span>
+                            <span class="session-type">Sessão com Usuários</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">9:30 AM</div>
+                        <div class="session-item morning-session">
+                            <span class="session-topic">Apresentação geral do portfólio de apps e listas</span>
+                            <span class="session-type">Apresentação</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">11:00 AM</div>
+                        <div class="session-item workshop morning-session">
+                            <span class="session-topic">Workshop: Classificação dos apps por criticidade (Ex: Matriz Esforço x Impacto)</span>
+                            <span class="session-type">Workshop</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">2:00 PM</div>
+                        <div class="session-item afternoon-session">
+                            <span class="session-topic">Levantamento de oportunidades de padronização e integração</span>
+                            <span class="session-type">Análise</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">3:00 PM</div>
+                        <div class="session-item afternoon-session">
+                            <span class="session-topic">Melhoria contínua no ciclo de vida de apps</span>
+                            <span class="session-type">Discussão</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">4:00 PM</div>
+                        <div class="session-item afternoon-session">
+                            <span class="session-topic">Propostas de novos apps, desativação ou refatoração</span>
+                            <span class="session-type">Brainstorm</span>
+                        </div>
+                    </div>
+                    
+                   
+                </div>
+            </div>
+            
+            <!-- Quarta-feira -->
+            <div class="day-card" id="quarta">
+                <div class="day-header">
+                    <h2 class="day-title">Quarta-feira</h2>
+                </div>
+                 <div class="day-content">
+                 <div class="time-slot">
+                        <div class="time-marker">8:00 PM</div>
+                        <div class="session-item workshop afternoon-session">
+                            <span class="session-topic">Construção do plano de ação: ações, responsáveis, prazos</span>
+                            <span class="session-type">Workshop</span>
+                        </div>
+                    </div>
+
+               
+                    <div class="time-slot">
+                        <div class="time-marker">10:00 AM</div>
+                        <div class="session-item morning-session">
+                            <span class="session-topic">Auditoria dos dados: listas, conexões, automações</span>
+                            <span class="session-type">Auditoria</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">2:00 PM</div>
+                        <div class="session-item afternoon-session">
+                            <span class="session-topic">Diagnóstico dos fluxos Power Automate</span>
+                            <span class="session-type">Análise Técnica</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">3:00 PM</div>
+                        <div class="session-item workshop afternoon-session">
+                            <span class="session-topic">Workshop: Redesenhando a arquitetura de dados</span>
+                            <span class="session-type">Workshop</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quinta-feira -->
+            <div class="day-card" id="quinta">
+                <div class="day-header">
+                    <h2 class="day-title">Quinta-feira</h2>
+                </div>
+                
+                <div class="day-content">
+                    <div class="time-slot">
+                        <div class="time-marker">8:00 AM</div>
+                        <div class="session-item sessao morning-session">
+                            <span class="session-topic">Sessão: Segurança de acesso, permissões, backups</span>
+                            <span class="session-type">Sessão Técnica</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">10:00 AM</div>
+                        <div class="session-item morning-session">
+                            <span class="session-topic">Novo NAS, SharePoint, backup estruturado</span>
+                            <span class="session-type">Apresentação</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">2:00 PM</div>
+                        <div class="session-item afternoon-session">
+                            <span class="session-topic">Alinhamento com os objetivos estratégicos da empresa</span>
+                            <span class="session-type">Discussão Estratégica</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sexta-feira -->
+            <div class="day-card" id="sexta">
+                <div class="day-header">
+                    <h2 class="day-title">Sexta-feira</h2>
+                </div>
+                
+                <div class="day-content">
+                    <div class="time-slot">
+                        <div class="time-marker">8:00 AM</div>
+                        <div class="session-item espaco-time morning-session">
+                            <span class="session-topic">Espaço para Time: sugestões finais e validações</span>
+                            <span class="session-type">Dinâmica de Grupo</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">9:00 AM</div>
+                        <div class="session-item morning-session">
+                            <span class="session-topic">Apresentação final do Plano de Ação (com priorização)</span>
+                            <span class="session-type">Apresentação</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">2:00 PM</div>
+                        <div class="session-item sessao afternoon-session">
+                            <span class="session-topic">Sessão de feedback da imersão</span>
+                            <span class="session-type">Feedback</span>
+                        </div>
+                    </div>
+                    
+                    <div class="time-slot">
+                        <div class="time-marker">5:00 PM</div>
+                        <div class="session-item afternoon-session">
+                            <span class="session-topic">Encerramento oficial</span>
+                            <span class="session-type">Encerramento</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Imersão CI + TI © 2023 | Todos os direitos reservados</p>
+        </div>
+    </div>
+    
+    <script>
+        function scrollToDay(dayId) {
+            const element = document.getElementById(dayId);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+    </script>
+</body>
+</html>
